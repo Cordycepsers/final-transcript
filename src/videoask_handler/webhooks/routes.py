@@ -1,13 +1,39 @@
-from flask import Blueprint, request, jsonify, Flask
+from flask import Blueprint, request, jsonify
 from ..transcription.rev_ai import handle_transcription_job
 from ..transcription.quality import get_transcript_quality
 
-# Create Flask application instance
-app = Flask(__name__)
 webhook_bp = Blueprint('webhook', __name__)
 
-# Register the blueprint with the application
-app.register_blueprint(webhook_bp)
+def find_question_text(questions, question_id):
+    """Find the question text from question ID."""
+    for question in questions:
+        if question.get("question_id") == question_id:
+            return question.get("metadata", {}).get("text", "Unknown Question")
+    return "Unknown Question"
+
+def process_video_answer(answer, contact, form_data, interaction_id):
+    """Process a single video answer from the webhook data."""
+    media_url = answer["media_url"]
+    question_id = answer.get("question_id", "Unknown")
+    email = contact.get("email")
+    name = contact.get("name", "Unknown")
+    
+    question_text = find_question_text(
+        form_data.get("questions", []),
+        question_id
+    )
+    
+    return handle_transcription_job(
+        media_url=media_url,
+        email=email,
+        question=question_text,
+        metadata={
+            "name": name,
+            "interaction_id": interaction_id,
+            "answer_id": answer.get("answer_id"),
+            "share_id": answer.get("share_id")
+        }
+    )
 
 @webhook_bp.route('/webhook', methods=['POST'])
 def videoask_webhook():
@@ -17,22 +43,25 @@ def videoask_webhook():
     
     response_data = {"status": "processed", "errors": []}
     
-    # Extract media URL and other details
-    for answer in data.get("answers", []):
-        if "media_url" in answer:
-            media_url = answer["media_url"]
-            email = data["contact"]["email"]
-            question = answer.get("poll_option_content", "Unknown Question")
-            
-            # Trigger transcription job
-            result = handle_transcription_job(media_url, email, question)
-            
-            # Handle any errors
-            if result and "error" in result:
-                response_data["errors"].append({
-                    "media_url": media_url,
-                    "error": result["error"]
-                })
+    # Handle VideoAsk form_response event
+    if data.get("event_type") == "form_response":
+        contact = data.get("contact", {})
+        answers = contact.get("answers", [])
+        
+        for answer in answers:
+            if answer.get("type") == "video" and answer.get("media_url"):
+                result = process_video_answer(
+                    answer,
+                    contact,
+                    data.get("form", {}),
+                    data.get("interaction_id")
+                )
+                
+                if result and "error" in result:
+                    response_data["errors"].append({
+                        "media_url": answer["media_url"],
+                        "error": result["error"]
+                    })
     
     return jsonify(response_data)
 
@@ -47,5 +76,3 @@ def check_transcript_quality(job_id):
             "error": str(e),
             "status": "error"
         }), 500
-    
-    return jsonify({"status": "success"}), 200

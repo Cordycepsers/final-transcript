@@ -1,4 +1,3 @@
-"""VideoAsk Handler package"""
 from flask import Flask
 from .webhooks.routes import webhook_bp
 
