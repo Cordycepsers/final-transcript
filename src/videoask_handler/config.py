@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Rev AI Configuration
-REV_AI_API_URL = "https://api.rev.ai/speechtotext/v1"
-REV_AI_API_KEY = "02JsFtX2pAFphcKAyTgDjMf06x9XjB-0PCZJvro1E2j2zatcZHU7lxJaJ9wIQwqN1r77GL6OQ5qDx-JQajdPPTSK6-acU"
+REV_AI_API_URL = ["https://api.rev.ai/speechtotext/v1"]
+REV_AI_API_KEY = ["02JsFtX2pAFphcKAyTgDjMf06x9XjB-0PCZJvro1E2j2zatcZHU7lxJaJ9wIQwqN1r77GL6OQ5qDx-JQajdPPTSK6-acU"]
 
 # Supported audio formats (based on FFmpeg support)
 SUPPORTED_AUDIO_FORMATS = {

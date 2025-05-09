@@ -11,8 +11,8 @@ def find_question_text(questions, question_id):
             return question.get("metadata", {}).get("text", "Unknown Question")
     return "Unknown Question"
 
-def process_video_answer(answer, contact, form_data, interaction_id):
-    """Process a single video answer from the webhook data."""
+def process_media_answer(answer, contact, form_data, interaction_id):
+    """Process a single video or audio answer from the webhook data."""
     media_url = answer["media_url"]
     question_id = answer.get("question_id", "Unknown")
     email = contact.get("email")
@@ -31,7 +31,8 @@ def process_video_answer(answer, contact, form_data, interaction_id):
             "name": name,
             "interaction_id": interaction_id,
             "answer_id": answer.get("answer_id"),
-            "share_id": answer.get("share_id")
+            "share_id": answer.get("share_id"),
+            "answer_type": answer.get("type", "unknown")
         }
     )
 
@@ -49,8 +50,8 @@ def videoask_webhook():
         answers = contact.get("answers", [])
         
         for answer in answers:
-            if answer.get("type") == "video" and answer.get("media_url"):
-                result = process_video_answer(
+            if answer.get("media_url") and answer.get("type") in ["video", "audio"]:
+                result = process_media_answer(
                     answer,
                     contact,
                     data.get("form", {}),
