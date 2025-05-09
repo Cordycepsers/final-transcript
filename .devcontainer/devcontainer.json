@@ -1,1 +1,30 @@
-{"image":"mcr.microsoft.com/devcontainers/universal:2"}
+{
+  "name": "Final Transcript Service",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
+  },
+  "postCreateCommand": "bash setup_dev.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "njpwerner.autodocstring",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspaces/final-transcript/venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black"
+      }
+    }
+  },
+  "remoteEnv": {
+    "PYTHONPATH": "${containerWorkspaceFolder}"
+  }
+}
