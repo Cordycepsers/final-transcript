@@ -1,8 +1,13 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Flask
 from ..transcription.rev_ai import handle_transcription_job
 from ..transcription.quality import get_transcript_quality
 
+# Create Flask application instance
+app = Flask(__name__)
 webhook_bp = Blueprint('webhook', __name__)
+
+# Register the blueprint with the application
+app.register_blueprint(webhook_bp)
 
 @webhook_bp.route('/webhook', methods=['POST'])
 def videoask_webhook():
